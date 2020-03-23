@@ -3,12 +3,13 @@ package com.example.wifiaccess
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.net.NetworkInfo
+import android.net.wifi.SupplicantState
 import android.net.wifi.WifiManager
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+
 
 class MainActivity : AppCompatActivity() {
     private lateinit var wifiTextView: TextView
@@ -24,7 +25,7 @@ class MainActivity : AppCompatActivity() {
         wifiButton = findViewById<Button>(R.id.button_wifi)
 
         wifiButton.setOnClickListener{
-           wifiTextView.text = getWifiScanResult()
+            wifiTextView.text = getWifiScanResult()
         }
     }
 
@@ -35,13 +36,13 @@ class MainActivity : AppCompatActivity() {
 
         if (isWiFiConnected()) {
             val wifiInfo = wifiManager.connectionInfo
-            if (wifiInfo != null) {
-                val ssid = wifiInfo.ssid.toString()
-                val bssid = wifiInfo.bssid.toString()
-                val ipAddress = wifiInfo.ipAddress.toString()
-                val macAddress = wifiInfo.macAddress.toString()
-                val networkId = wifiInfo.networkId.toString()
-                val linkSpeed = wifiInfo.linkSpeed.toString()
+            if (wifiInfo != null && wifiInfo.supplicantState == SupplicantState.COMPLETED) {
+                val ssid = wifiInfo.ssid
+                val bssid = wifiInfo.bssid
+                val ipAddress = wifiInfo.ipAddress
+                val macAddress = wifiInfo.macAddress
+                val networkId = wifiInfo.networkId
+                val linkSpeed = wifiInfo.linkSpeed
 
                 result = "ssid = $ssid\n\nbssid = $bssid\n\nipAddress = $ipAddress" +
                         "\n\nmacAddress = $macAddress\n\nnetworkId = $networkId\n\nlinkSpeed = $linkSpeed"
@@ -56,7 +57,7 @@ class MainActivity : AppCompatActivity() {
             val capabilities = connManager.getNetworkCapabilities(network)
             capabilities != null && capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
         } else {
-            connManager.activeNetworkInfo.type == ConnectivityManager.TYPE_WIFI
+            return false
         }
     }
 }
