@@ -14,8 +14,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var wifiTextView: TextView
     private lateinit var wifiButton: Button
 
-    lateinit var wifiManager: WifiManager
-    lateinit var connManager: ConnectivityManager
+    private lateinit var wifiManager: WifiManager
+    private lateinit var connManager: ConnectivityManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,7 +26,6 @@ class MainActivity : AppCompatActivity() {
         wifiButton.setOnClickListener{
            wifiTextView.text = getWifiScanResult()
         }
-
     }
 
     private fun getWifiScanResult(): String {
@@ -44,14 +43,14 @@ class MainActivity : AppCompatActivity() {
                 val networkId = wifiInfo.networkId.toString()
                 val linkSpeed = wifiInfo.linkSpeed.toString()
 
-                result = "$ssid\n\n$bssid\n\n$ipAddress\n\n$macAddress\n\n$networkId\n\n$linkSpeed"
+                result = "ssid = $ssid\n\nbssid = $bssid\n\nipAddress = $ipAddress" +
+                        "\n\nmacAddress = $macAddress\n\nnetworkId = $networkId\n\nlinkSpeed = $linkSpeed"
             }
         }
-
         return result
     }
 
-    fun isWiFiConnected(): Boolean {
+    private fun isWiFiConnected(): Boolean {
         return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
             val network = connManager.activeNetwork
             val capabilities = connManager.getNetworkCapabilities(network)
@@ -60,5 +59,4 @@ class MainActivity : AppCompatActivity() {
             connManager.activeNetworkInfo.type == ConnectivityManager.TYPE_WIFI
         }
     }
-
 }
