@@ -1,41 +1,46 @@
 package com.example.wifiaccess
 
-import android.app.admin.DeviceAdminReceiver
-import android.content.BroadcastReceiver
+import android.Manifest
 import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
+import android.content.IntentSender
+import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.net.wifi.ScanResult
 import android.net.wifi.SupplicantState
 import android.net.wifi.WifiManager
-import android.os.Build
 import android.os.Bundle
-import android.os.Handler
 import android.util.Log
 import android.widget.Button
 import android.widget.TextView
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import java.net.InetAddress
+import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.common.api.ResolvableApiException
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.LocationSettingsRequest
+import com.google.android.gms.location.LocationSettingsStatusCodes
+import com.karumi.dexter.Dexter
+import com.karumi.dexter.MultiplePermissionsReport
+import com.karumi.dexter.PermissionToken
+import com.karumi.dexter.listener.PermissionRequest
+import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 
-
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), MultiplePermissionsListener {
     private lateinit var wifiTextView: TextView
     private lateinit var wifiButton: Button
+    private val REQUEST_CHECK_SETTINGS = 0x1
 
     private lateinit var wifiManager: WifiManager
     private lateinit var connManager: ConnectivityManager
-
+    private lateinit var locManager: LocationManager
    // var SSPName = ""
    // var LandingPageURL = ""
 
-    var resultList = ArrayList<ScanResult>()
+   // var resultList = ArrayList<ScanResult>()
 
     //TODO: used with startScanning() and stopScanning()
 //    private val broadcastReceiver = object : BroadcastReceiver() {
-//        override fun onReceive(contxt: Context?, intent: Intent?) {
+//        override fun onReceive(context: Context?, intent: Intent?) {
 //            resultList = wifiManager.scanResults as ArrayList<ScanResult>
 //            Log.d("TESTING", "onReceive Called")
 //        }
@@ -44,16 +49,24 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        enableGps()
+
         wifiTextView = findViewById<TextView>(R.id.wifi_text)
         wifiButton = findViewById<Button>(R.id.button_wifi)
 
         connManager = this.applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         wifiManager = this.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+        locManager = this.applicationContext.getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
         wifiButton.setOnClickListener{
             wifiTextView.text = getWifiScanResult()
         }
        // getSSPName()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        locPerms()
     }
 
     private fun getWifiScanResult(): String {
@@ -156,4 +169,74 @@ class MainActivity : AppCompatActivity() {
 //            e1.printStackTrace()
 //        }
 //    }
+
+    //used to get device location permission.
+    private fun enableGps() {
+
+        val locationRequest = LocationRequest.create()
+            .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+            .setInterval(2000)
+            .setFastestInterval(1000)
+
+        val settingsBuilder = LocationSettingsRequest.Builder()
+            .addLocationRequest(locationRequest)
+        settingsBuilder.setAlwaysShow(true)
+
+        val result = LocationServices.getSettingsClient(this).checkLocationSettings(settingsBuilder.build())
+        result.addOnCompleteListener { task ->
+
+            //getting the status code from exception
+            try {
+                task.getResult(ApiException::class.java)
+            } catch (ex: ApiException) {
+
+                when (ex.statusCode) {
+
+                    LocationSettingsStatusCodes.RESOLUTION_REQUIRED -> try {
+                        toast("Location is OFF.")
+
+                        // Show the dialog by calling startResolutionForResult(), and check the result
+                        // in onActivityResult().
+                        val resolvableApiException = ex as ResolvableApiException
+                        resolvableApiException.startResolutionForResult(this,REQUEST_CHECK_SETTINGS
+                        )
+                    } catch (e: IntentSender.SendIntentException) {
+                        toast("PendingIntent unable to execute request.")
+                    }
+                    LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE -> {
+                        toast("Something is wrong in your GPS")
+                    }
+                }
+            }
+            Log.d("enableGPS: ", "was called!!!")
+        }
+    }
+
+    //used library: https://github.com/Karumi/Dexter --used to get app-level location permission.
+    private fun locPerms() {
+
+        val permissions = listOf(
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_BACKGROUND_LOCATION
+        )
+
+        Dexter.withActivity(this)
+            .withPermissions(permissions)
+            .withListener(this)
+            ?.check()
+        Log.d("locPerms: ", "was called!!!")
+    }
+
+    override fun onPermissionsChecked(report: MultiplePermissionsReport?) {
+        toast("Location ON.")
+    }
+
+    override fun onPermissionRationaleShouldBeShown(
+        permissions: MutableList<PermissionRequest>?,
+        token: PermissionToken?
+    ) {
+        toast("Location permissions required for WiFi info.")
+    }
 }
+
