@@ -9,6 +9,7 @@ import android.net.NetworkCapabilities
 import android.net.wifi.SupplicantState
 import android.net.wifi.WifiManager
 import android.os.Bundle
+import android.text.format.Formatter
 import android.util.Log
 import android.widget.Button
 import android.widget.TextView
@@ -32,7 +33,6 @@ class MainActivity : AppCompatActivity(), MultiplePermissionsListener {
 
     private lateinit var wifiManager: WifiManager
     private lateinit var connManager: ConnectivityManager
-    private lateinit var locManager: LocationManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,7 +44,6 @@ class MainActivity : AppCompatActivity(), MultiplePermissionsListener {
 
         connManager = this.applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         wifiManager = this.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-        locManager = this.applicationContext.getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
         wifiButton.setOnClickListener{
             wifiTextView.text = getWifiScanResult()
@@ -69,8 +68,9 @@ class MainActivity : AppCompatActivity(), MultiplePermissionsListener {
                 val dhcp = wifiManager.dhcpInfo
                 val networkId = wifiInfo.networkId
                 val linkSpeed = wifiInfo.linkSpeed
+                val privateIP = Formatter.formatIpAddress(ipAddress)
 
-                result = "ssid = $ssid\n\nbssid = $bssid\n\nipAddress = $ipAddress" +
+                result = "ssid = $ssid\n\nbssid = $bssid\n\nprivateIP = $privateIP\n\nipAddress = $ipAddress" +
                         "\n\nserverAddress = $serverAddress\n\nDHCP = $dhcp\n\nnetworkId = $networkId\n\nlinkSpeed = $linkSpeed"
             }
         }
