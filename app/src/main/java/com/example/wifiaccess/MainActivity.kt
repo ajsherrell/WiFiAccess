@@ -45,7 +45,7 @@ class MainActivity : AppCompatActivity(), MultiplePermissionsListener {
         wifiManager = this.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
 
         wifiButton.setOnClickListener{
-            wifiTextView.text = getWifiScanResult()
+            wifiTextView.text = wifiScanResult()
         }
     }
 
@@ -54,7 +54,8 @@ class MainActivity : AppCompatActivity(), MultiplePermissionsListener {
         locPerms()
     }
 
-    private fun wifiScanResult() : List<WifiData> {
+    private fun wifiScanResult() : String {
+        var result = ""
         if (isWiFiConnected()) {
             val wifiInfo = wifiManager.connectionInfo
             if (wifiInfo != null && wifiInfo.supplicantState == SupplicantState.COMPLETED) {
@@ -67,16 +68,10 @@ class MainActivity : AppCompatActivity(), MultiplePermissionsListener {
                 val linkSpeed = wifiInfo.linkSpeed.toString()
                 val privateIP = Formatter.formatIpAddress(ipAddress.toInt())
 
-                val result = listOf<WifiData>(ssid, bssid, ipAddress, serverAddress, dhcp, networkId, linkSpeed, privateIP)
+                val data: WifiData = WifiData(ssid, bssid, ipAddress, serverAddress, dhcp, networkId, linkSpeed, privateIP)
+                result = data.bssid
             }
         }
-        return result
-    }
-
-    private fun getWifiScanResult() : String {
-        val result = ""
-        val ssid = wifiScanResult()
-
         return result
     }
 
