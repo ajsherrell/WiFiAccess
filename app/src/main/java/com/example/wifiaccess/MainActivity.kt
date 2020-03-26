@@ -54,25 +54,29 @@ class MainActivity : AppCompatActivity(), MultiplePermissionsListener {
         locPerms()
     }
 
-    private fun getWifiScanResult(): String {
-        var result = ""
-
+    private fun wifiScanResult() : List<WifiData> {
         if (isWiFiConnected()) {
             val wifiInfo = wifiManager.connectionInfo
             if (wifiInfo != null && wifiInfo.supplicantState == SupplicantState.COMPLETED) {
                 val ssid = wifiInfo.ssid
                 val bssid = wifiInfo.bssid
-                val ipAddress = wifiInfo.ipAddress
-                val serverAddress = wifiManager.dhcpInfo.serverAddress //different from settings
-                val dhcp = wifiManager.dhcpInfo
-                val networkId = wifiInfo.networkId
-                val linkSpeed = wifiInfo.linkSpeed
-                val privateIP = Formatter.formatIpAddress(ipAddress)
+                val ipAddress = wifiInfo.ipAddress.toString()
+                val serverAddress = wifiManager.dhcpInfo.serverAddress.toString() //different from settings
+                val dhcp = wifiManager.dhcpInfo.toString()
+                val networkId = wifiInfo.networkId.toString()
+                val linkSpeed = wifiInfo.linkSpeed.toString()
+                val privateIP = Formatter.formatIpAddress(ipAddress.toInt())
 
-                result = "ssid = $ssid\n\nbssid = $bssid\n\nprivateIP = $privateIP\n\nipAddress = $ipAddress" +
-                        "\n\nserverAddress = $serverAddress\n\nDHCP = $dhcp\n\nnetworkId = $networkId\n\nlinkSpeed = $linkSpeed"
+                val result = listOf<WifiData>(ssid, bssid, ipAddress, serverAddress, dhcp, networkId, linkSpeed, privateIP)
             }
         }
+        return result
+    }
+
+    private fun getWifiScanResult() : String {
+        val result = ""
+        val ssid = wifiScanResult()
+
         return result
     }
 
