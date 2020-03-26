@@ -3,7 +3,6 @@ package com.example.wifiaccess
 import android.Manifest
 import android.content.Context
 import android.content.IntentSender
-import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.wifi.SupplicantState
